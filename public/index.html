@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MLB Playoff Predictor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="main-header">
+      <h1>POSTSEASON</h1>
+      <div class="leagues-header">
+        <h2 class="league-title american">AMERICAN</h2>
+        <h2 class="league-title national">NATIONAL</h2>
+      </div>
+    </header>
+    
+    <main class="bracket">
+      <!-- Column 1: AL Wild Card -->
+      <div class="round-column">
+        <h2 class="round-title">WILD CARD</h2>
+        <div class="matchup-wrapper" id="al-wc1-wrapper"></div>
+        <div class="matchup-wrapper" id="al-wc2-wrapper"></div>
+      </div>
+      
+      <!-- Column 2: AL Division Series -->
+      <div class="round-column">
+        <h2 class="round-title">DIVISION SERIES</h2>
+        <div class="matchup-wrapper" id="al-ds1-wrapper"></div>
+        <div class="matchup-wrapper" id="al-ds2-wrapper"></div>
+      </div>
+
+      <!-- Column 3: Championship & World Series -->
+      <div class="round-column">
+        <h2 class="round-title">CHAMPIONSHIP</h2>
+        <div class="matchup-wrapper" id="al-cs-wrapper"></div>
+        
+        <div class="world-series-card">
+          <h2 class="round-title">WORLD SERIES</h2>
+          <div class="ws-teams">
+            <div class="ws-team" id="ws-al-team"></div>
+            <span class="ws-vs">VS</span>
+            <div class="ws-team" id="ws-nl-team"></div>
+          </div>
+          <!-- Wrapper for all WS controls -->
+          <div id="ws-controls-wrapper"></div>
+          <!-- NEW: Wrapper for final MVP prediction -->
+          <div id="final-prediction-wrapper"></div>
+        </div>
+
+        <div class="matchup-wrapper" id="nl-cs-wrapper"></div> 
+      </div>
+
+      <!-- Column 4: NL Division Series -->
+      <div class="round-column">
+        <h2 class="round-title">DIVISION SERIES</h2>
+        <div class="matchup-wrapper" id="nl-ds1-wrapper"></div>
+        <div class="matchup-wrapper" id="nl-ds2-wrapper"></div>
+      </div>
+      
+      <!-- Column 5: NL Wild Card -->
+      <div class="round-column">
+        <h2 class="round-title">WILD CARD</h2>
+        <div class="matchup-wrapper" id="nl-wc1-wrapper"></div>
+        <div class="matchup-wrapper" id="nl-wc2-wrapper"></div>
+      </div>
+    </main>
+
+    <form id="prediction-form">
+      <div id="user-info">
+        <h2>Tus Datos</h2>
+        <input id="name" placeholder="Nombre" required />
+        <input id="email" type="email" placeholder="Correo Electrónico" required />
+        <input id="phone" placeholder="Teléfono" required />
+        <select id="payment" required>
+          <option value="" disabled selected>Método de pago</option>
+          <option value="ATH Móvil">ATH Móvil</option>
+          <option value="PayPal">PayPal</option>
+          <option value="Efectivo">Efectivo</option>
+        </select>
+        <textarea id="comments" placeholder="Comentarios"></textarea>
+      </div>
+      <button type="submit">Enviar Predicciones</button>
+    </form>
+
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
