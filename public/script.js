@@ -1,21 +1,22 @@
 document.addEventListener("DOMContentLoaded", function () {
   // --- 1. CONFIGURATION ---
-  const alSeeds = ["New York Yankees", "Baltimore Orioles", "Cleveland Guardians", "Seattle Mariners", "Houston Astros", "Minnesota Twins"];
-  const nlSeeds = ["Los Angeles Dodgers", "Milwaukee Brewers", "Philadelphia Phillies", "Atlanta Braves", "Chicago Cubs", "San Diego Padres"];
+  const alSeeds = ["1-Detroit Tigers", "2-Houston Astros", "3-New York Yankees", "4-Tampa Bay Rays", "5-Toronto Blue Jays", "6-Seattle Mariners"];
+  const nlSeeds = ["1-Los Angeles Dodgers", "2-Chicago Cubs", "3-Philadelphia Phillies", "4-New York Mets", "5-Milwaukee Brewers", "6-San Diego Padres"];
   
   const teamLogos = {
-    "New York Yankees": "logos/yankees.png",
-    "Baltimore Orioles": "logos/orioles.png",
+    "3-New York Yankees": "logos/yankees.png",
+    "1-Detroit Tigers": "logos/tigers.png",
     "Cleveland Guardians": "logos/guardians.png",
-    "Seattle Mariners": "logos/mariners.png",
-    "Houston Astros": "logos/astros.png",
+    "6-Seattle Mariners": "logos/mariners.png",
+    "2-Houston Astros": "logos/astros.png",
     "Minnesota Twins": "logos/twins.png",
-    "Los Angeles Dodgers": "logos/dodgers.png",
-    "Milwaukee Brewers": "logos/brewers.png",
-    "Philadelphia Phillies": "logos/phillies.png",
+    "1-Los Angeles Dodgers": "logos/dodgers.png",
+    "5-Milwaukee Brewers": "logos/brewers.png",
+    "3-Philadelphia Phillies": "logos/phillies.png",
     "Atlanta Braves": "logos/braves.png",
-    "Chicago Cubs": "logos/cubs.png",
-    "San Diego Padres": "logos/padres.png",
+    "2-Chicago Cubs": "logos/cubs.png",
+    "6-San Diego Padres": "logos/padres.png",
+    "4-New York Mets": "logos/mets.png",
     "TBD": "logos/default.png"
   };
 
