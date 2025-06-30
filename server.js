@@ -17,14 +17,16 @@ mongoose
   .then(() => console.log("✅ Conectado a MongoDB"))
   .catch((err) => console.error("❌ Error en conexión MongoDB:", err));
 
-// --- Updated Database Schema ---
-const predictionSchema = new mongoose.Schema({
+// --- Database Schema ---
+// The schema definition remains the same.
+const jugadaSchema = new mongoose.Schema({
   name: String,
   email: String,
   phone: String,
   paymentMethod: String,
   comments: String,
   worldSeriesMVP: String,
+  tieBreakerScore: [Number],
   alWCWinners: [String],
   nlWCWinners: [String],
   alDSWinners: [String],
@@ -32,23 +34,29 @@ const predictionSchema = new mongoose.Schema({
   alCSWinner: String,
   nlCSWinner: String,
   worldSeriesWinner: String,
-  seriesLengths: Object, // <-- UPDATED FIELD
+  seriesLengths: Object,
   submittedAt: { type: Date, default: Date.now }
 });
 
-const Prediction = mongoose.model("Prediction", predictionSchema);
+// --- CHANGED LINE ---
+// We changed the model name from "Prediction" to "Jugada".
+// Mongoose will automatically create a collection named "jugadas".
+const Jugada = mongoose.model("Jugada", jugadaSchema);
 
 app.post("/api/submit", async (req, res) => {
   try {
     const data = req.body;
 
-    const newPrediction = new Prediction({
+    // --- CHANGED LINE ---
+    // We now create a new instance of the "Jugada" model.
+    const newJugada = new Jugada({
       name: data.name,
       email: data.email,
       phone: data.phone,
       paymentMethod: data.paymentMethod,
       comments: data.comments || "N/A",
       worldSeriesMVP: data.worldSeriesMVP,
+      tieBreakerScore: data.tieBreakerScore,
       alWCWinners: data.alWCWinners,
       nlWCWinners: data.nlWCWinners,
       alDSWinners: data.alDSWinners,
@@ -56,11 +64,13 @@ app.post("/api/submit", async (req, res) => {
       alCSWinner: data.alCSWinner,
       nlCSWinner: data.nlCSWinner,
       worldSeriesWinner: data.worldSeriesWinner,
-      seriesLengths: data.seriesLengths // <-- SAVING NEW DATA
+      seriesLengths: data.seriesLengths
     });
 
-    await newPrediction.save();
-    console.log("📥 Predicción guardada en la base de datos:", newPrediction);
+    // --- CHANGED LINE ---
+    // We save the new "newJugada" document.
+    await newJugada.save();
+    console.log("📥 Jugada guardada en la base de datos:", newJugada);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -70,7 +80,6 @@ app.post("/api/submit", async (req, res) => {
       }
     });
     
-    // --- Updated Email Summary ---
     const summary = `
 Resumen de tu Predicción MLB:
 
@@ -91,6 +100,7 @@ GANADORES Y DURACIÓN DE SERIES:
 PREDICCIÓN FINAL:
 - Campeón Serie Mundial: ${data.worldSeriesWinner} (En ${data.seriesLengths.ws} juegos)
 - MVP de la Serie Mundial: ${data.worldSeriesMVP}
+- Marcador de Desempate (Total de Carreras): ${data.tieBreakerScore.join(' - ')}
 
 ¡Gracias por participar y mucha suerte!
     `;
