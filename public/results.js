@@ -5,19 +5,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
   const adminKey = urlParams.get('key');
 
-  // Scoring rules based on the provided PDF
+  // Reglas de puntuación basadas en el PDF
   const pointRules = {
-    wc_winner: 2,
-    ds_winner: 4,
-    cs_winner: 8,
-    ws_winner: 16,
-    wc_length: 1,
-    ds_length: 2,
-    cs_length: 3,
-    ws_length: 4,
+    wc: { winner: 2, length: 1 },
+    ds: { winner: 4, length: 2 },
+    cs: { winner: 8, length: 3 },
+    ws: { winner: 16, length: 4 },
   };
 
-  // --- ADMIN PANEL LOGIC ---
+  // --- LÓGICA DEL PANEL DE ADMINISTRADOR ---
 
   function showAdminPanel(correctResults) {
     if (!adminPanel) return;
@@ -28,6 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "Los Angeles Dodgers", "Milwaukee Brewers", "Philadelphia Phillies", "Atlanta Braves", "Chicago Cubs", "San Diego Padres"
     ];
     
+    // Define todas las series para el formulario de admin
     const seriesData = [
       { id: 'al-wc1', label: 'AL Wild Card 1', round: 'wc' },
       { id: 'al-wc2', label: 'AL Wild Card 2', round: 'wc' },
@@ -45,19 +42,6 @@ document.addEventListener("DOMContentLoaded", function () {
     seriesData.forEach(s => buildAdminMatchup(s.id, s.label, allTeams, correctResults, s.round));
     
     adminForm.addEventListener("submit", handleAdminFormSubmit);
-  }
-
-  function getCorrectWinner(id, results) {
-      if (!results) return '';
-      if (id === 'al-cs') return results.alCSWinner;
-      if (id === 'nl-cs') return results.nlCSWinner;
-      if (id === 'ws') return results.worldSeriesWinner;
-      
-      if (id.startsWith('al-wc')) return (results.alWCWinners || [])[parseInt(id.slice(-1)) - 1];
-      if (id.startsWith('nl-wc')) return (results.nlWCWinners || [])[parseInt(id.slice(-1)) - 1];
-      if (id.startsWith('al-ds')) return (results.alDSWinners || [])[parseInt(id.slice(-1)) - 1];
-      if (id.startsWith('nl-ds')) return (results.nlDSWinners || [])[parseInt(id.slice(-1)) - 1];
-      return '';
   }
 
   function buildAdminMatchup(id, label, teams, correctResults, round) {
@@ -78,46 +62,27 @@ document.addEventListener("DOMContentLoaded", function () {
         </select>
       `;
       
+      // Pre-seleccionar valores guardados
+      if (correctResults.winners && correctResults.winners[id]) {
+          document.getElementById(`correct-${id}-winner`).value = correctResults.winners[id];
+      }
       if (correctResults.seriesLengths && correctResults.seriesLengths[id]) {
           document.getElementById(`correct-${id}-length`).value = correctResults.seriesLengths[id];
-      }
-      const correctWinner = getCorrectWinner(id, correctResults);
-      if(correctWinner) {
-        document.getElementById(`correct-${id}-winner`).value = correctWinner;
       }
   }
   
   async function handleAdminFormSubmit(e) {
       e.preventDefault();
-      const resultsToSave = {
-          seriesLengths: {},
-          alWCWinners: [], nlWCWinners: [],
-          alDSWinners: [], nlDSWinners: [],
-          alCSWinner: '', nlCSWinner: '',
-          worldSeriesWinner: ''
-      };
+      const resultsToSave = { winners: {}, seriesLengths: {} };
       
       document.querySelectorAll('#admin-form select').forEach(select => {
           const id = select.id.replace('correct-', '');
-          if (id.endsWith('-length')) {
-              const seriesId = id.replace('-length', '');
-              if(select.value) resultsToSave.seriesLengths[seriesId] = select.value;
-          } else if (id.endsWith('-winner')) {
+          if (id.endsWith('-winner')) {
               const seriesId = id.replace('-winner', '');
-              const winnerValue = select.value;
-              if (winnerValue) {
-                  if (seriesId === 'al-wc1') resultsToSave.alWCWinners[0] = winnerValue;
-                  else if (seriesId === 'al-wc2') resultsToSave.alWCWinners[1] = winnerValue;
-                  else if (seriesId === 'nl-wc1') resultsToSave.nlWCWinners[0] = winnerValue;
-                  else if (seriesId === 'nl-wc2') resultsToSave.nlWCWinners[1] = winnerValue;
-                  else if (seriesId === 'al-ds1') resultsToSave.alDSWinners[0] = winnerValue;
-                  else if (seriesId === 'al-ds2') resultsToSave.alDSWinners[1] = winnerValue;
-                  else if (seriesId === 'nl-ds1') resultsToSave.nlDSWinners[0] = winnerValue;
-                  else if (seriesId === 'nl-ds2') resultsToSave.nlDSWinners[1] = winnerValue;
-                  else if (seriesId === 'al-cs') resultsToSave.alCSWinner = winnerValue;
-                  else if (seriesId === 'nl-cs') resultsToSave.nlCSWinner = winnerValue;
-                  else if (seriesId === 'ws') resultsToSave.worldSeriesWinner = winnerValue;
-              }
+              if (select.value) resultsToSave.winners[seriesId] = select.value;
+          } else if (id.endsWith('-length')) {
+              const seriesId = id.replace('-length', '');
+              if (select.value) resultsToSave.seriesLengths[seriesId] = select.value;
           }
       });
 
@@ -127,17 +92,16 @@ document.addEventListener("DOMContentLoaded", function () {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(resultsToSave),
           });
-          if(!response.ok) throw new Error('Failed to save results');
-          alert('Resultados guardados con éxito!');
+          if (!response.ok) throw new Error('Falló al guardar los resultados');
+          alert('¡Resultados guardados con éxito!');
           location.reload();
       } catch (error) {
-          console.error('Error saving results:', error);
+          console.error('Error guardando resultados:', error);
           alert(`Error: ${error.message}`);
       }
   }
 
-
-  // --- SCORING AND DISPLAY LOGIC ---
+  // --- LÓGICA DE PUNTUACIÓN Y VISUALIZACIÓN ---
 
   async function calculateAndDisplayScores() {
     try {
@@ -146,7 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("/api/get-results")
       ]);
       
-      if(!jugadasResponse.ok || !correctResultsResponse.ok) throw new Error('Failed to fetch data');
+      if (!jugadasResponse.ok || !correctResultsResponse.ok) throw new Error('Falló al obtener los datos');
 
       const jugadas = await jugadasResponse.json();
       const correctResults = await correctResultsResponse.json();
@@ -165,48 +129,47 @@ document.addEventListener("DOMContentLoaded", function () {
       const scoredJugadas = jugadas.map(jugada => {
         let totalPoints = 0;
         const correct = correctResults || {};
-        
-        const calculateRoundPoints = (userWinners, correctWinners, userLengths, correctLengths, seriesPrefix, winnerPoints, lengthPoints) => {
+        const correctWinners = correct.winners || {};
+        const correctLengths = correct.seriesLengths || {};
+
+        // Función para calcular puntos de una serie
+        const scoreSeries = (seriesId, roundKey) => {
             let points = 0;
-            if (!userWinners || !correctWinners) return 0;
-            userWinners.forEach((winner, index) => {
-                if (winner && correctWinners.includes(winner)) {
-                    points += winnerPoints;
-                    const seriesId = `${seriesPrefix}${index + 1}`;
-                    if (userLengths?.[seriesId] && correctLengths?.[seriesId] && userLengths[seriesId] == correctLengths[seriesId]) {
-                        points += lengthPoints;
+            const userWinner = jugada[seriesId];
+            const correctWinner = correctWinners[seriesId.replace(/([A-Z])/g, '_$1').toLowerCase()]; // ej. alCSWinner -> al_cs_winner
+            
+            // Lógica para series con múltiples ganadores (WC, DS)
+            if (Array.isArray(jugada[seriesId])) {
+                jugada[seriesId].forEach((winner, index) => {
+                    const sId = `${roundKey}${index + 1}`; // ej. al_wc1
+                    if (winner && correctWinners[sId] === winner) {
+                        points += pointRules[roundKey.split('_')[1]].winner;
+                        if (jugada.seriesLengths?.[sId] && correctLengths?.[sId] == jugada.seriesLengths[sId]) {
+                            points += pointRules[roundKey.split('_')[1]].length;
+                        }
+                    }
+                });
+            } else { // Lógica para series con un solo ganador (CS, WS)
+                const sId = roundKey;
+                if (userWinner && correctWinners[sId] === userWinner) {
+                    points += pointRules[roundKey].winner;
+                    if (jugada.seriesLengths?.[sId] && correctLengths?.[sId] == jugada.seriesLengths[sId]) {
+                        points += pointRules[roundKey].length;
                     }
                 }
-            });
+            }
             return points;
         };
-
-        totalPoints += calculateRoundPoints(jugada.alWCWinners, correct.alWCWinners, jugada.seriesLengths, correct.seriesLengths, 'al_wc', pointRules.wc_winner, pointRules.wc_length);
-        totalPoints += calculateRoundPoints(jugada.nlWCWinners, correct.nlWCWinners, jugada.seriesLengths, correct.seriesLengths, 'nl_wc', pointRules.wc_winner, pointRules.wc_length);
         
-        totalPoints += calculateRoundPoints(jugada.alDSWinners, correct.alDSWinners, jugada.seriesLengths, correct.seriesLengths, 'al_ds', pointRules.ds_winner, pointRules.ds_length);
-        totalPoints += calculateRoundPoints(jugada.nlDSWinners, correct.nlDSWinners, jugada.seriesLengths, correct.seriesLengths, 'nl_ds', pointRules.ds_winner, pointRules.ds_length);
+        // Calcular puntos para cada ronda
+        totalPoints += scoreSeries('alWCWinners', 'al_wc');
+        totalPoints += scoreSeries('nlWCWinners', 'nl_wc');
+        totalPoints += scoreSeries('alDSWinners', 'al_ds');
+        totalPoints += scoreSeries('nlDSWinners', 'nl_ds');
+        totalPoints += scoreSeries('alCSWinner', 'cs');
+        totalPoints += scoreSeries('nlCSWinner', 'cs');
+        totalPoints += scoreSeries('worldSeriesWinner', 'ws');
 
-        if (jugada.alCSWinner && jugada.alCSWinner === correct.alCSWinner) {
-            totalPoints += pointRules.cs_winner;
-            if (jugada.seriesLengths?.al_cs && correct.seriesLengths?.al_cs && jugada.seriesLengths.al_cs == correct.seriesLengths.al_cs) {
-                totalPoints += pointRules.cs_length;
-            }
-        }
-        if (jugada.nlCSWinner && jugada.nlCSWinner === correct.nlCSWinner) {
-            totalPoints += pointRules.cs_winner;
-            if (jugada.seriesLengths?.nl_cs && correct.seriesLengths?.nl_cs && jugada.seriesLengths.nl_cs == correct.seriesLengths.nl_cs) {
-                totalPoints += pointRules.cs_length;
-            }
-        }
-
-        if(jugada.worldSeriesWinner && jugada.worldSeriesWinner === correct.worldSeriesWinner) {
-            totalPoints += pointRules.ws_winner;
-            if(jugada.seriesLengths?.ws && correct.seriesLengths?.ws && jugada.seriesLengths.ws == correct.seriesLengths.ws) {
-                totalPoints += pointRules.ws_length;
-            }
-        }
-        
         return { ...jugada, totalPoints };
       }).sort((a, b) => b.totalPoints - a.totalPoints);
 
@@ -215,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${jugada.name || 'N/A'}</td>
-          <td>${jugada.totalPoints}</td>
+          <td><b>${jugada.totalPoints}</b></td>
           <td>${jugada.worldSeriesWinner || 'N/A'}</td>
           <td>${jugada.worldSeriesMVP || 'N/A'}</td>
         `;
@@ -224,7 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     } catch (error) {
       console.error("Error al cargar y puntuar los resultados:", error);
-      tableBody.innerHTML = `<tr><td colspan="5" class="loading-cell">No se pudieron cargar los resultados. Por favor, revisa la consola.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="5" class="loading-cell">No se pudieron cargar los resultados. Por favor, revise la consola.</td></tr>`;
     }
   }
 
