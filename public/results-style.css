@@ -81,3 +81,70 @@ body {
   font-style: italic;
   padding: 40px;
 }
+
+/* --- Admin Panel Styles --- */
+#admin-panel {
+  background-color: var(--card-dark);
+  border: 1px solid var(--accent-blue);
+  border-radius: 8px;
+  padding: 2em;
+  margin-bottom: 3em;
+}
+
+#admin-panel h2 {
+  text-align: center;
+  margin-top: 0;
+  color: var(--accent-blue);
+}
+
+#admin-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2em;
+}
+
+.admin-round h3 {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5em;
+  margin-bottom: 1em;
+}
+
+.admin-matchup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 1.5em;
+}
+
+.admin-matchup label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.admin-matchup select,
+.admin-matchup input {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#admin-form button[type="submit"] {
+  grid-column: 1 / -1; /* Make button span all columns */
+  background-color: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1em;
+}
+#admin-form button[type="submit"]:hover {
+  filter: brightness(1.2);
+}

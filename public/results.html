@@ -3,41 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resultados de Predicciones - MLB Pool</title>
-  <!-- Link to a new CSS file for this page -->
+  <title>Resultados y Puntuaciones - MLB Pool</title>
   <link rel="stylesheet" href="results-style.css" />
 </head>
 <body>
   <div class="container">
     <header class="main-header">
-      <h1>Resultados de Predicciones</h1>
-      <a href="/" class="back-link">← Volver al Bracket</a>
+      <h1>Resultados y Puntuaciones</h1>
+      <a href="/" class="back-link">← Volver al Bracket de Predicción</a>
     </header>
+
+    <!-- NEW: Admin Panel (hidden by default) -->
+    <section id="admin-panel" style="display: none;">
+      <h2>Panel de Administrador - Ingresar Resultados Correctos</h2>
+      <form id="admin-form">
+        <!-- Wild Card -->
+        <div class="admin-round">
+          <h3>Wild Card</h3>
+          <div class="admin-matchup" id="admin-al-wc1"></div>
+          <div class="admin-matchup" id="admin-al-wc2"></div>
+          <div class="admin-matchup" id="admin-nl-wc1"></div>
+          <div class="admin-matchup" id="admin-nl-wc2"></div>
+        </div>
+        <!-- Division Series -->
+        <div class="admin-round">
+          <h3>Division Series</h3>
+          <div class="admin-matchup" id="admin-al-ds1"></div>
+          <div class="admin-matchup" id="admin-al-ds2"></div>
+          <div class="admin-matchup" id="admin-nl-ds1"></div>
+          <div class="admin-matchup" id="admin-nl-ds2"></div>
+        </div>
+        <!-- Championship Series -->
+        <div class="admin-round">
+          <h3>Championship Series</h3>
+          <div class="admin-matchup" id="admin-al-cs"></div>
+          <div class="admin-matchup" id="admin-nl-cs"></div>
+        </div>
+        <!-- World Series -->
+        <div class="admin-round">
+          <h3>World Series</h3>
+          <div class="admin-matchup" id="admin-ws"></div>
+        </div>
+        <button type="submit">Guardar Resultados Correctos</button>
+      </form>
+    </section>
 
     <main id="results-container">
       <div class="table-wrapper">
         <table id="results-table">
           <thead>
             <tr>
+              <th>#</th>
               <th>Jugador</th>
-              <th>Campeón Serie Mundial</th>
-              <th>MVP</th>
-              <th>Juegos (WS)</th>
-              <th>Desempate (Carreras)</th>
-              <th>Fecha</th>
+              <th>Puntos Totales</th>
+              <th>Campeón Predicho</th>
+              <th>MVP Predicho</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Los resultados se insertarán aquí por JavaScript -->
-            <tr>
-              <td colspan="6" class="loading-cell">Cargando resultados...</td>
-            </tr>
+            <tr><td colspan="5" class="loading-cell">Cargando resultados...</td></tr>
           </tbody>
         </table>
       </div>
     </main>
   </div>
-  <!-- Link to a new JS file for this page -->
   <script src="results.js"></script>
 </body>
 </html>
