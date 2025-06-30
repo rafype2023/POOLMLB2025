@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let masterJugadas = [];
   let masterCorrectResults = {};
 
+  // Reglas de puntuación basadas en el PDF
   const pointRules = {
     wc: { winner: 2, length: 1 },
     ds: { winner: 4, length: 2 },
@@ -90,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function showDetailView(jugadaId) {
       const jugada = masterJugadas.find(j => j._id === jugadaId);
-      if (!jugada) return;
+      if (!jugada || !detailViewContainer) return;
       detailViewContainer.innerHTML = buildDetailViewHTML(jugada, masterCorrectResults);
       detailViewContainer.classList.remove('hidden');
       detailViewContainer.querySelector('.close-detail-btn').addEventListener('click', () => {
@@ -102,27 +103,34 @@ document.addEventListener("DOMContentLoaded", function () {
       const correctWinners = correct.winners || {};
       const correctLengths = correct.seriesLengths || {};
 
-      const createPickHTML = (label, seriesId, userWinner, userLength) => {
-          const correctWinner = correctWinners[seriesId];
-          const correctLength = correctLengths[seriesId];
-          let className = '';
-          if (correctWinner) {
-              className = (userWinner === correctWinner) ? 'correct' : 'incorrect';
-          }
-          let lengthInfo = `(en ${userLength || '?'} juegos)`;
-          if (className === 'correct' && userLength == correctLength) {
-              lengthInfo += ' ✅';
-          }
-          return `<div class="detail-pick"><span class="pick-label">${label}:</span> <span class="pick-team ${className}">${userWinner || 'N/A'}</span> <span class="pick-length">${lengthInfo}</span></div>`;
+      const createPickHTML = (label, seriesId, userWinners, userLengths) => {
+          if (!Array.isArray(userWinners)) userWinners = [userWinners]; // Handle single winners like CS/WS
+          
+          return userWinners.map((userWinner, index) => {
+              const sId = Array.isArray(jugada[seriesId]) ? `${seriesId.replace('Winners', '').toLowerCase()}${index+1}` : seriesId;
+              const correctWinner = correctWinners[sId];
+              const userLength = userLengths?.[sId.replace('-', '_')];
+              const correctLength = correctLengths[sId];
+              let className = '';
+
+              if (correctWinner) {
+                  className = (userWinner === correctWinner) ? 'correct' : 'incorrect';
+              }
+              let lengthInfo = `(en ${userLength || '?'} juegos)`;
+              if (className === 'correct' && userLength && correctLength && userLength == correctLength) {
+                  lengthInfo += ' ✅';
+              }
+              return `<div class="detail-pick"><span class="pick-label">${label.replace('1','')} ${index+1}:</span> <span class="pick-team ${className}">${userWinner || 'N/A'}</span> <span class="pick-length">${lengthInfo}</span></div>`;
+          }).join('');
       };
       
-      const alWC = jugada.alWCWinners?.map((winner, i) => createPickHTML(`ALWC ${i+1}`, `al-wc${i+1}`, winner, jugada.seriesLengths?.[`al_wc${i+1}`])).join('') || '';
-      const nlWC = jugada.nlWCWinners?.map((winner, i) => createPickHTML(`NLWC ${i+1}`, `nl-wc${i+1}`, winner, jugada.seriesLengths?.[`nl_wc${i+1}`])).join('') || '';
-      const alDS = jugada.alDSWinners?.map((winner, i) => createPickHTML(`ALDS ${i+1}`, `al-ds${i+1}`, winner, jugada.seriesLengths?.[`al_ds${i+1}`])).join('') || '';
-      const nlDS = jugada.nlDSWinners?.map((winner, i) => createPickHTML(`NLDS ${i+1}`, `nl-ds${i+1}`, winner, jugada.seriesLengths?.[`nl_ds${i+1}`])).join('') || '';
-      const alCS = createPickHTML('ALCS', 'al-cs', jugada.alCSWinner, jugada.seriesLengths?.al_cs);
-      const nlCS = createPickHTML('NLCS', 'nl-cs', jugada.nlCSWinner, jugada.seriesLengths?.nl_cs);
-      const ws = createPickHTML('World Series', 'ws', jugada.worldSeriesWinner, jugada.seriesLengths?.ws);
+      const alWC = createPickHTML('ALWC', 'al-wc', jugada.alWCWinners, jugada.seriesLengths);
+      const nlWC = createPickHTML('NLWC', 'nl-wc', jugada.nlWCWinners, jugada.seriesLengths);
+      const alDS = createPickHTML('ALDS', 'al-ds', jugada.alDSWinners, jugada.seriesLengths);
+      const nlDS = createPickHTML('NLDS', 'nl-ds', jugada.nlDSWinners, jugada.seriesLengths);
+      const alCS = createPickHTML('ALCS', 'al-cs', [jugada.alCSWinner], jugada.seriesLengths);
+      const nlCS = createPickHTML('NLCS', 'nl-cs', [jugada.nlCSWinner], jugada.seriesLengths);
+      const ws = createPickHTML('World Series', 'ws', [jugada.worldSeriesWinner], jugada.seriesLengths);
       const mvp = `<div class="detail-pick"><span class="pick-label">MVP:</span> ${jugada.worldSeriesMVP || 'N/A'}</div>`;
 
       return `
@@ -153,7 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
       masterJugadas = await jugadasResponse.json();
       masterCorrectResults = await correctResultsResponse.json();
 
-      if (adminKey) showAdminPanel(masterCorrectResults);
+      if (adminKey) showAdminPanel();
 
       tableBody.innerHTML = "";
       if (masterJugadas.length === 0) {
@@ -168,12 +176,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const scoreRound = (userWinners, seriesPrefix, roundKey) => {
             let points = 0;
-            if (!userWinners) return 0;
+            if (!userWinners || !Array.isArray(userWinners)) return 0;
             userWinners.forEach((winner, i) => {
                 const sId = `${seriesPrefix}${i+1}`;
                 if (winner && winner === correctW[sId]) {
                     points += pointRules[roundKey].winner;
-                    if (jugada.seriesLengths?.[sId.replace('-', '_')] == correctL[sId]) {
+                    if (jugada.seriesLengths?.[sId.replace('-','_')] && correctL[sId] && jugada.seriesLengths[sId.replace('-','_')] == correctL[sId]) {
                         points += pointRules[roundKey].length;
                     }
                 }
@@ -185,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let points = 0;
             if (userWinner && userWinner === correctW[seriesId]) {
                 points += pointRules[roundKey].winner;
-                if (jugada.seriesLengths?.[seriesId.replace('-', '_')] == correctL[seriesId]) {
+                if (jugada.seriesLengths?.[seriesId.replace('-','_')] && correctL[seriesId] && jugada.seriesLengths[seriesId.replace('-','_')] == correctL[seriesId]) {
                     points += pointRules[roundKey].length;
                 }
             }
@@ -205,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       scoredJugadas.forEach((jugada, index) => {
         const row = document.createElement("tr");
-        row.dataset.jugadaId = jugada._id; // Guardar el ID para el clic
+        row.dataset.jugadaId = jugada._id;
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${jugada.name || 'N/A'}</td>
