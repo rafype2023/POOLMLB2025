@@ -17,6 +17,7 @@ mongoose
   .then(() => console.log("✅ Conectado a MongoDB"))
   .catch((err) => console.error("❌ Error en conexión MongoDB:", err));
 
+// --- Database Schema ---
 const jugadaSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -38,6 +39,7 @@ const jugadaSchema = new mongoose.Schema({
 
 const Jugada = mongoose.model("Jugada", jugadaSchema);
 
+// --- API Endpoint to POST a new prediction ---
 app.post("/api/submit", async (req, res) => {
   try {
     const data = req.body;
@@ -71,9 +73,6 @@ app.post("/api/submit", async (req, res) => {
       }
     });
     
-    // --- ROBUST EMAIL SUMMARY (THE FIX) ---
-    // This new summary uses checks like `(data.alWCWinners ?? [])` to prevent
-    // crashes if a part of the form is not filled out.
     const summary = `
 Resumen de tu Predicción MLB:
 
@@ -84,16 +83,16 @@ INFORMACIÓN:
 - Método de pago: ${data.paymentMethod}
 
 GANADORES Y DURACIÓN DE SERIES:
-- Wild Card AL: ${(data.alWCWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.al_wc1 || '?'} y ${data.seriesLengths?.al_wc2 || '?'} juegos)
-- Wild Card NL: ${(data.nlWCWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.nl_wc1 || '?'} y ${data.seriesLengths?.nl_wc2 || '?'} juegos)
-- Division Series AL: ${(data.alDSWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.al_ds1 || '?'} y ${data.seriesLengths?.al_ds2 || '?'} juegos)
-- Division Series NL: ${(data.nlDSWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.nl_ds1 || '?'} y ${data.seriesLengths?.nl_ds2 || '?'} juegos)
-- Campeón AL: ${data.alCSWinner || 'No seleccionado'} (En ${data.seriesLengths?.al_cs || '?'} juegos)
-- Campeón NL: ${data.nlCSWinner || 'No seleccionado'} (En ${data.seriesLengths?.nl_cs || '?'} juegos)
+- Wild Card AL: ${(data.alWCWinners ?? []).join(" & ")} (En ${data.seriesLengths?.al_wc1 || '?'} y ${data.seriesLengths?.al_wc2 || '?'} juegos)
+- Wild Card NL: ${(data.nlWCWinners ?? []).join(" & ")} (En ${data.seriesLengths?.nl_wc1 || '?'} y ${data.seriesLengths?.nl_wc2 || '?'} juegos)
+- Division Series AL: ${(data.alDSWinners ?? []).join(" & ")} (En ${data.seriesLengths?.al_ds1 || '?'} y ${data.seriesLengths?.al_ds2 || '?'} juegos)
+- Division Series NL: ${(data.nlDSWinners ?? []).join(" & ")} (En ${data.seriesLengths?.nl_ds1 || '?'} y ${data.seriesLengths?.nl_ds2 || '?'} juegos)
+- Campeón AL: ${data.alCSWinner || 'N/A'} (En ${data.seriesLengths?.al_cs || '?'} juegos)
+- Campeón NL: ${data.nlCSWinner || 'N/A'} (En ${data.seriesLengths?.nl_cs || '?'} juegos)
 
 PREDICCIÓN FINAL:
-- Campeón Serie Mundial: ${data.worldSeriesWinner || 'No seleccionado'} (En ${data.seriesLengths?.ws || '?'} juegos)
-- MVP de la Serie Mundial: ${data.worldSeriesMVP || 'No seleccionado'}
+- Campeón Serie Mundial: ${data.worldSeriesWinner || 'N/A'} (En ${data.seriesLengths?.ws || '?'} juegos)
+- MVP de la Serie Mundial: ${data.worldSeriesMVP || 'N/A'}
 - Marcador de Desempate (Total de Carreras): ${(data.tieBreakerScore ?? []).join(' - ')}
 
 ¡Gracias por participar y mucha suerte!
@@ -113,6 +112,22 @@ PREDICCIÓN FINAL:
   }
 });
 
+
+// --- NEW: API Endpoint to GET all predictions ---
+app.get("/api/jugadas", async (req, res) => {
+  try {
+    // Find all documents in the "jugadas" collection, sort by submission date descending
+    const allJugadas = await Jugada.find({}).sort({ submittedAt: -1 });
+    // Send the found documents as a JSON response
+    res.status(200).json(allJugadas);
+  } catch (error) {
+    console.error("❌ Error al obtener las jugadas:", error);
+    res.status(500).json({ error: "Error interno del servidor al obtener las jugadas" });
+  }
+});
+
+
+// Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });

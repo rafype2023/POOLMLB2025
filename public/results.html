@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resultados de Predicciones - MLB Pool</title>
+  <!-- Link to a new CSS file for this page -->
+  <link rel="stylesheet" href="results-style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="main-header">
+      <h1>Resultados de Predicciones</h1>
+      <a href="/" class="back-link">← Volver al Bracket</a>
+    </header>
+
+    <main id="results-container">
+      <div class="table-wrapper">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Jugador</th>
+              <th>Campeón Serie Mundial</th>
+              <th>MVP</th>
+              <th>Juegos (WS)</th>
+              <th>Desempate (Carreras)</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Los resultados se insertarán aquí por JavaScript -->
+            <tr>
+              <td colspan="6" class="loading-cell">Cargando resultados...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <!-- Link to a new JS file for this page -->
+  <script src="results.js"></script>
+</body>
+</html>
