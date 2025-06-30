@@ -13,11 +13,10 @@
       <a href="/" class="back-link">← Volver al Bracket de Predicción</a>
     </header>
 
-    <!-- NEW: Admin Panel (hidden by default) -->
+    <!-- Panel de Administrador (oculto por defecto) -->
     <section id="admin-panel" style="display: none;">
       <h2>Panel de Administrador - Ingresar Resultados Correctos</h2>
       <form id="admin-form">
-        <!-- Wild Card -->
         <div class="admin-round">
           <h3>Wild Card</h3>
           <div class="admin-matchup" id="admin-al-wc1"></div>
@@ -25,7 +24,6 @@
           <div class="admin-matchup" id="admin-nl-wc1"></div>
           <div class="admin-matchup" id="admin-nl-wc2"></div>
         </div>
-        <!-- Division Series -->
         <div class="admin-round">
           <h3>Division Series</h3>
           <div class="admin-matchup" id="admin-al-ds1"></div>
@@ -33,13 +31,11 @@
           <div class="admin-matchup" id="admin-nl-ds1"></div>
           <div class="admin-matchup" id="admin-nl-ds2"></div>
         </div>
-        <!-- Championship Series -->
         <div class="admin-round">
           <h3>Championship Series</h3>
           <div class="admin-matchup" id="admin-al-cs"></div>
           <div class="admin-matchup" id="admin-nl-cs"></div>
         </div>
-        <!-- World Series -->
         <div class="admin-round">
           <h3>World Series</h3>
           <div class="admin-matchup" id="admin-ws"></div>
@@ -48,6 +44,7 @@
       </form>
     </section>
 
+    <!-- Tabla de Posiciones Principal -->
     <main id="results-container">
       <div class="table-wrapper">
         <table id="results-table">
@@ -66,6 +63,10 @@
         </table>
       </div>
     </main>
+
+    <!-- NUEVO: Contenedor para la Vista de Detalle (inicialmente oculto) -->
+    <div id="detail-view-container" class="hidden"></div>
+
   </div>
   <script src="results.js"></script>
 </body>
