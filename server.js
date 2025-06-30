@@ -17,8 +17,6 @@ mongoose
   .then(() => console.log("✅ Conectado a MongoDB"))
   .catch((err) => console.error("❌ Error en conexión MongoDB:", err));
 
-// --- Database Schema ---
-// The schema definition remains the same.
 const jugadaSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -38,17 +36,12 @@ const jugadaSchema = new mongoose.Schema({
   submittedAt: { type: Date, default: Date.now }
 });
 
-// --- CHANGED LINE ---
-// We changed the model name from "Prediction" to "Jugada".
-// Mongoose will automatically create a collection named "jugadas".
 const Jugada = mongoose.model("Jugada", jugadaSchema);
 
 app.post("/api/submit", async (req, res) => {
   try {
     const data = req.body;
 
-    // --- CHANGED LINE ---
-    // We now create a new instance of the "Jugada" model.
     const newJugada = new Jugada({
       name: data.name,
       email: data.email,
@@ -67,8 +60,6 @@ app.post("/api/submit", async (req, res) => {
       seriesLengths: data.seriesLengths
     });
 
-    // --- CHANGED LINE ---
-    // We save the new "newJugada" document.
     await newJugada.save();
     console.log("📥 Jugada guardada en la base de datos:", newJugada);
 
@@ -80,6 +71,9 @@ app.post("/api/submit", async (req, res) => {
       }
     });
     
+    // --- ROBUST EMAIL SUMMARY (THE FIX) ---
+    // This new summary uses checks like `(data.alWCWinners ?? [])` to prevent
+    // crashes if a part of the form is not filled out.
     const summary = `
 Resumen de tu Predicción MLB:
 
@@ -90,17 +84,17 @@ INFORMACIÓN:
 - Método de pago: ${data.paymentMethod}
 
 GANADORES Y DURACIÓN DE SERIES:
-- Wild Card AL: ${data.alWCWinners.join(" & ")} (En ${data.seriesLengths.al_wc1} y ${data.seriesLengths.al_wc2} juegos)
-- Wild Card NL: ${data.nlWCWinners.join(" & ")} (En ${data.seriesLengths.nl_wc1} y ${data.seriesLengths.nl_wc2} juegos)
-- Division Series AL: ${data.alDSWinners.join(" & ")} (En ${data.seriesLengths.al_ds1} y ${data.seriesLengths.al_ds2} juegos)
-- Division Series NL: ${data.nlDSWinners.join(" & ")} (En ${data.seriesLengths.nl_ds1} y ${data.seriesLengths.nl_ds2} juegos)
-- Campeón AL: ${data.alCSWinner} (En ${data.seriesLengths.al_cs} juegos)
-- Campeón NL: ${data.nlCSWinner} (En ${data.seriesLengths.nl_cs} juegos)
+- Wild Card AL: ${(data.alWCWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.al_wc1 || '?'} y ${data.seriesLengths?.al_wc2 || '?'} juegos)
+- Wild Card NL: ${(data.nlWCWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.nl_wc1 || '?'} y ${data.seriesLengths?.nl_wc2 || '?'} juegos)
+- Division Series AL: ${(data.alDSWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.al_ds1 || '?'} y ${data.seriesLengths?.al_ds2 || '?'} juegos)
+- Division Series NL: ${(data.nlDSWinners ?? []).filter(Boolean).join(" & ") || 'No completado'} (En ${data.seriesLengths?.nl_ds1 || '?'} y ${data.seriesLengths?.nl_ds2 || '?'} juegos)
+- Campeón AL: ${data.alCSWinner || 'No seleccionado'} (En ${data.seriesLengths?.al_cs || '?'} juegos)
+- Campeón NL: ${data.nlCSWinner || 'No seleccionado'} (En ${data.seriesLengths?.nl_cs || '?'} juegos)
 
 PREDICCIÓN FINAL:
-- Campeón Serie Mundial: ${data.worldSeriesWinner} (En ${data.seriesLengths.ws} juegos)
-- MVP de la Serie Mundial: ${data.worldSeriesMVP}
-- Marcador de Desempate (Total de Carreras): ${data.tieBreakerScore.join(' - ')}
+- Campeón Serie Mundial: ${data.worldSeriesWinner || 'No seleccionado'} (En ${data.seriesLengths?.ws || '?'} juegos)
+- MVP de la Serie Mundial: ${data.worldSeriesMVP || 'No seleccionado'}
+- Marcador de Desempate (Total de Carreras): ${(data.tieBreakerScore ?? []).join(' - ')}
 
 ¡Gracias por participar y mucha suerte!
     `;
