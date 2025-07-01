@@ -1,53 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
   const reportContainer = document.getElementById("report-container");
 
-  const pointRules = {
-    wc: { winner: 2, length: 1 },
-    ds: { winner: 4, length: 2 },
-    cs: { winner: 8, length: 3 },
-    ws: { winner: 16, length: 4 },
-  };
+  const pointRules = { /* ... (sin cambios) ... */ };
 
-  function createComparisonRow(seriesName, playerPick, playerLength, clavePick, claveLength, points) {
-    const winnerMatch = playerPick && clavePick && playerPick === clavePick;
-    const lengthMatch = playerLength && claveLength && playerLength === claveLength;
-    return `
-      <tr>
-        <td>${seriesName}</td>
-        <td>${playerPick || 'N/A'}</td>
-        <td>${playerLength || '?'}</td>
-        <td>${clavePick || 'N/A'}</td>
-        <td>${claveLength || '?'}</td>
-        <td class="${winnerMatch ? 'match-yes' : 'match-no'}">${winnerMatch ? 'Yes' : 'No'}</td>
-        <td class="${winnerMatch && lengthMatch ? 'match-yes' : 'match-no'}">${winnerMatch && lengthMatch ? 'Yes' : 'No'}</td>
-        <td class="points-cell">${points}</td>
-      </tr>
-    `;
-  }
-
-  function createPlayerReportCard(playerData) {
-    const { name, totalPoints, reportData } = playerData;
-    const createTableForRound = (title, seriesArray) => {
-      return `
-        <div class="round-report">
-          <h3>${title}</h3>
-          <table class="report-table">
-            <thead><tr><th>Serie</th><th>Tu Pick</th><th>Juegos</th><th>Pick CLAVE</th><th>Juegos</th><th>Acertó Ganador</th><th>Acertó Juegos</th><th>Puntos</th></tr></thead>
-            <tbody>${seriesArray.map(s => createComparisonRow(s.name, s.playerPick, s.playerLength, s.clavePick, s.claveLength, s.points)).join('')}</tbody>
-          </table>
-        </div>
-      `;
-    };
-    return `
-      <div class="player-report-card">
-        <div class="player-header"><h2>${name || 'Jugador Anónimo'}</h2><div class="total-score">${totalPoints} Puntos</div></div>
-        ${createTableForRound("Wild Card Series", reportData.wc)}
-        ${createTableForRound("Division Series", reportData.ds)}
-        ${createTableForRound("Championship Series", reportData.cs)}
-        ${createTableForRound("Finals", reportData.final)}
-      </div>
-    `;
-  }
+  function createComparisonRow(seriesName, playerPick, playerLength, clavePick, claveLength, points) { /* ... (sin cambios) ... */ }
+  function createPlayerReportCard(playerData) { /* ... (sin cambios) ... */ }
   
   function processAllJugadas(allJugadas) {
     const claveEntry = allJugadas.find(j => j.name === 'CLAVE' && j.email === 'rafyperez@gmail.com');
@@ -61,16 +18,16 @@ document.addEventListener("DOMContentLoaded", function () {
       let totalPoints = 0;
       const reportData = { wc: [], ds: [], cs: [], final: [] };
       const seriesMapping = [
-        { key: 'alWCWinners', prefix: 'ALWC', round: 'wc', lenPrefix: 'al_wc' },
-        { key: 'nlWCWinners', prefix: 'NLWC', round: 'wc', lenPrefix: 'nl_wc' },
-        { key: 'alDSWinners', prefix: 'ALDS', round: 'ds', lenPrefix: 'al_ds' },
-        { key: 'nlDSWinners', prefix: 'NLDS', round: 'ds', lenPrefix: 'nl_ds' },
+        { key: 'alWCWinners', prefix: 'ALWC', round: 'wc', lenPrefix: 'al-wc' }, // CORREGIDO
+        { key: 'nlWCWinners', prefix: 'NLWC', round: 'wc', lenPrefix: 'nl-wc' }, // CORREGIDO
+        { key: 'alDSWinners', prefix: 'ALDS', round: 'ds', lenPrefix: 'al-ds' }, // CORREGIDO
+        { key: 'nlDSWinners', prefix: 'NLDS', round: 'ds', lenPrefix: 'nl-ds' }, // CORREGIDO
       ];
 
       seriesMapping.forEach(map => {
         (player[map.key] || []).forEach((playerPick, i) => {
           const clavePick = (claveEntry[map.key] || [])[i];
-          // CORREGIDO: Buscar con guión bajo
+          // CORREGIDO: Buscar con guion
           const playerLength = player.seriesLengths?.[`${map.lenPrefix}${i+1}`];
           const claveLength = claveEntry.seriesLengths?.[`${map.lenPrefix}${i+1}`];
           let points = 0;
@@ -86,15 +43,15 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const finalSeriesMapping = [
-        { key: 'alCSWinner', name: 'ALCS', round: 'cs', lenKey: 'al_cs' },
-        { key: 'nlCSWinner', name: 'NLCS', round: 'cs', lenKey: 'nl_cs' },
-        { key: 'worldSeriesWinner', name: 'World Series', round: 'ws', lenKey: 'ws' },
+        { key: 'alCSWinner', name: 'ALCS', round: 'cs', lenKey: 'al-cs' }, // CORREGIDO
+        { key: 'nlCSWinner', name: 'NLCS', round: 'cs', lenKey: 'nl-cs' }, // CORREGIDO
+        { key: 'worldSeriesWinner', name: 'World Series', round: 'ws', lenKey: 'ws-winner' }, // CORREGIDO
       ];
 
       finalSeriesMapping.forEach(map => {
         const playerPick = player[map.key];
         const clavePick = claveEntry[map.key];
-        // CORREGIDO: Buscar con guión bajo
+        // CORREGIDO: Buscar con guion
         const playerLength = player.seriesLengths?.[map.lenKey];
         const claveLength = claveEntry.seriesLengths?.[map.lenKey];
         let points = 0;
