@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // State objects to remember user selections
   const winners = {};
-  const seriesLengths = {}; // NEW: Remembers the length of each series
+  const seriesLengths = {}; 
 
   // --- 2. DYNAMIC ELEMENT CREATION ---
 
@@ -57,7 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
       </div>
     `;
-    // Restore any existing selections for this matchup
     if (winners[selectId]) {
       wrapper.querySelector(`#${selectId}`).value = winners[selectId];
     }
@@ -112,7 +111,6 @@ document.addEventListener("DOMContentLoaded", function () {
           `;
       }
     }
-    // Restore WS selections
     if (winners['ws-winner']) document.getElementById('ws-winner').value = winners['ws-winner'];
     if (seriesLengths['ws-winner']) document.getElementById('ws-winner-length').value = seriesLengths['ws-winner'];
   }
@@ -138,11 +136,10 @@ document.addEventListener("DOMContentLoaded", function () {
     populateMatchup('al-wc1-wrapper', 'al-wc1', alSeeds[3], alSeeds[4], 3);
     populateMatchup('al-wc2-wrapper', 'al-wc2', alSeeds[2], alSeeds[5], 3);
     populateMatchup('nl-wc1-wrapper', 'nl-wc1', nlSeeds[3], nlSeeds[4], 3);
-    populateMatchup('nl-wc2-wrapper', 'nl-wc2', alSeeds[2], nlSeeds[5], 3);
+    populateMatchup('nl-wc2-wrapper', 'nl-wc2', nlSeeds[2], nlSeeds[5], 3);
     updateBracket();
   }
 
-  // UPDATED: Event listener now saves both winner and length selections
   document.querySelector('.bracket').addEventListener('change', (e) => {
     const target = e.target;
     if (target.tagName === 'SELECT') {
@@ -158,16 +155,107 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // --- 5. VALIDATION & SUBMISSION ---
   function validateForm() {
-    // ... (This function remains unchanged)
-    return true; // Placeholder
+    const missingFields = [];
+    document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
+
+    const seriesIds = [
+        'al-wc1', 'al-wc2', 'nl-wc1', 'nl-wc2',
+        'al-ds1', 'al-ds2', 'nl-ds1', 'nl-ds2',
+        'al-cs', 'nl-cs', 'ws-winner'
+    ];
+
+    seriesIds.forEach(id => {
+        const winnerSelect = document.getElementById(id);
+        const lengthSelect = document.getElementById(`${id}-length`);
+        if (!winnerSelect || !winnerSelect.value) {
+            missingFields.push(`Ganador de la serie ${id.toUpperCase()}`);
+            if(winnerSelect) winnerSelect.classList.add('invalid-field');
+        }
+        if (!lengthSelect || !lengthSelect.value) {
+            missingFields.push(`Duración de la serie ${id.toUpperCase()}`);
+            if(lengthSelect) lengthSelect.classList.add('invalid-field');
+        }
+    });
+
+    const mvpInput = document.getElementById('mvp');
+    if (!mvpInput || !mvpInput.value) {
+        missingFields.push("MVP de la Serie Mundial");
+        if(mvpInput) mvpInput.classList.add('invalid-field');
+    }
+    
+    const tieBreaker1 = document.getElementById('tie-breaker-score1');
+    if (!tieBreaker1 || tieBreaker1.value === '') {
+        missingFields.push("Marcador de Desempate (Equipo 1)");
+        if(tieBreaker1) tieBreaker1.classList.add('invalid-field');
+    }
+    
+    const tieBreaker2 = document.getElementById('tie-breaker-score2');
+     if (!tieBreaker2 || tieBreaker2.value === '') {
+        missingFields.push("Marcador de Desempate (Equipo 2)");
+        if(tieBreaker2) tieBreaker2.classList.add('invalid-field');
+    }
+
+    const personalInfoIds = { name: 'Nombre', email: 'Correo Electrónico', phone: 'Teléfono', payment: 'Método de pago' };
+    for (const id in personalInfoIds) {
+        const element = document.getElementById(id);
+        if (!element.value) {
+            missingFields.push(personalInfoIds[id]);
+            element.classList.add('invalid-field');
+        }
+    }
+
+    if (missingFields.length > 0) {
+        alert(`Por favor, complete todos los campos requeridos:\n\n- ${missingFields.join('\n- ')}`);
+        return false;
+    }
+
+    return true;
   }
 
   function getFormSelections() {
-    // ... (This function remains unchanged)
+    const getValue = id => (document.getElementById(id) || {}).value || "";
+    return {
+      name: getValue("name"), email: getValue("email"), phone: getValue("phone"),
+      paymentMethod: getValue("payment"), comments: getValue("comments"),
+      worldSeriesMVP: getValue("mvp"),
+      tieBreakerScore: [parseInt(getValue("tie-breaker-score1")) || 0, parseInt(getValue("tie-breaker-score2")) || 0],
+      alWCWinners: [getValue("al-wc1"), getValue("al-wc2")],
+      nlWCWinners: [getValue("nl-wc1"), getValue("nl-wc2")],
+      alDSWinners: [getValue("al-ds1"), getValue("al-ds2")],
+      nlDSWinners: [getValue("nl-ds1"), getValue("nl-ds2")],
+      alCSWinner: getValue("al-cs"),
+      nlCSWinner: getValue("nl-cs"),
+      worldSeriesWinner: getValue("ws-winner"),
+      seriesLengths: seriesLengths
+    };
   }
 
   document.getElementById("prediction-form").addEventListener("submit", async function (e) {
-    // ... (This function remains unchanged)
+    e.preventDefault();
+    
+    if (!validateForm()) {
+        return; 
+    }
+
+    const data = getFormSelections();
+    console.log("📥 Enviando predicción:", data);
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json();
+      if (response.ok) {
+        alert("✅ ¡Predicción enviada con éxito! Revisa tu correo para la confirmación.");
+        location.reload();
+      } else {
+        throw new Error(result.error || "Hubo un error al enviar tu predicción.");
+      }
+    } catch (err) {
+      console.error("❌ Error al enviar:", err);
+      alert("Error al enviar la predicción. Revisa la consola para más detalles.");
+    }
   });
 
   initializeBracket();
