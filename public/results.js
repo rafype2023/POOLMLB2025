@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let masterJugadas = [];
   let masterCorrectResults = {};
 
-  // Reglas de puntuación basadas en el PDF
   const pointRules = {
     wc: { winner: 2, length: 1 },
     ds: { winner: 4, length: 2 },
@@ -30,14 +29,14 @@ document.addEventListener("DOMContentLoaded", function () {
       { id: 'al-ds1', label: 'AL Division Series 1', round: 'ds' }, { id: 'al-ds2', label: 'AL Division Series 2', round: 'ds' },
       { id: 'nl-ds1', label: 'NL Division Series 1', round: 'ds' }, { id: 'nl-ds2', label: 'NL Division Series 2', round: 'ds' },
       { id: 'al-cs', label: 'AL Championship Series', round: 'cs' }, { id: 'nl-cs', label: 'NL Championship Series', round: 'cs' },
-      { id: 'ws', label: 'World Series', round: 'ws' },
+      { id: 'ws-winner', label: 'World Series', round: 'ws' }, // Corrected ID for WS
     ];
     seriesData.forEach(s => buildAdminMatchup(s.id, s.label, allTeams, masterCorrectResults, s.round));
     adminForm.addEventListener("submit", handleAdminFormSubmit);
   }
 
   function buildAdminMatchup(id, label, teams, correctResults, round) {
-      const container = document.getElementById(`admin-${id}`);
+      const container = document.getElementById(`admin-${id.replace('-winner', '')}`);
       if (!container) return;
       const lengthOptions = { wc: [2, 3], ds: [3, 4, 5], cs: [4, 5, 6, 7], ws: [4, 5, 6, 7] };
       let optionsHTML = '<option value="">-- Elige Ganador --</option>';
@@ -87,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
   }
 
-  // --- LÓGICA DE LA VISTA DE DETALLE (MODAL) ---
+  // --- LÓGICA DE LA VISTA DE DETALLE (CORREGIDA) ---
 
   function showDetailView(jugadaId) {
       const jugada = masterJugadas.find(j => j._id === jugadaId);
@@ -103,47 +102,38 @@ document.addEventListener("DOMContentLoaded", function () {
       const correctWinners = correct.winners || {};
       const correctLengths = correct.seriesLengths || {};
 
-      const createPickHTML = (label, seriesId, userWinners, userLengths) => {
-          if (!Array.isArray(userWinners)) userWinners = [userWinners]; // Handle single winners like CS/WS
-          
-          return userWinners.map((userWinner, index) => {
-              const sId = Array.isArray(jugada[seriesId]) ? `${seriesId.replace('Winners', '').toLowerCase()}${index+1}` : seriesId;
-              const correctWinner = correctWinners[sId];
-              const userLength = userLengths?.[sId.replace('-', '_')];
-              const correctLength = correctLengths[sId];
-              let className = '';
-
-              if (correctWinner) {
-                  className = (userWinner === correctWinner) ? 'correct' : 'incorrect';
-              }
-              let lengthInfo = `(en ${userLength || '?'} juegos)`;
-              if (className === 'correct' && userLength && correctLength && userLength == correctLength) {
-                  lengthInfo += ' ✅';
-              }
-              return `<div class="detail-pick"><span class="pick-label">${label.replace('1','')} ${index+1}:</span> <span class="pick-team ${className}">${userWinner || 'N/A'}</span> <span class="pick-length">${lengthInfo}</span></div>`;
-          }).join('');
+      const createPickHTML = (label, seriesId, userWinner, userLength) => {
+          const correctWinner = correctWinners[seriesId];
+          const correctLength = correctLengths[seriesId];
+          let className = '';
+          if (correctWinner) {
+              className = (userWinner === correctWinner) ? 'correct' : 'incorrect';
+          }
+          let lengthInfo = `(en ${userLength || '?'} juegos)`;
+          if (className === 'correct' && userLength && correctLength && userLength == correctLength) {
+              lengthInfo += ' ✅';
+          }
+          return `<div class="detail-pick"><span class="pick-label">${label}:</span> <span class="pick-team ${className}">${userWinner || 'N/A'}</span> <span class="pick-length">${lengthInfo}</span></div>`;
       };
       
-      const alWC = createPickHTML('ALWC', 'al-wc', jugada.alWCWinners, jugada.seriesLengths);
-      const nlWC = createPickHTML('NLWC', 'nl-wc', jugada.nlWCWinners, jugada.seriesLengths);
-      const alDS = createPickHTML('ALDS', 'al-ds', jugada.alDSWinners, jugada.seriesLengths);
-      const nlDS = createPickHTML('NLDS', 'nl-ds', jugada.nlDSWinners, jugada.seriesLengths);
-      const alCS = createPickHTML('ALCS', 'al-cs', [jugada.alCSWinner], jugada.seriesLengths);
-      const nlCS = createPickHTML('NLCS', 'nl-cs', [jugada.nlCSWinner], jugada.seriesLengths);
-      const ws = createPickHTML('World Series', 'ws', [jugada.worldSeriesWinner], jugada.seriesLengths);
+      const alWC = (jugada.alWCWinners || []).map((winner, i) => createPickHTML(`ALWC ${i + 1}`, `al-wc${i + 1}`, winner, jugada.seriesLengths[`al-wc${i + 1}`])).join('');
+      const nlWC = (jugada.nlWCWinners || []).map((winner, i) => createPickHTML(`NLWC ${i + 1}`, `nl-wc${i + 1}`, winner, jugada.seriesLengths[`nl-wc${i + 1}`])).join('');
+      const alDS = (jugada.alDSWinners || []).map((winner, i) => createPickHTML(`ALDS ${i + 1}`, `al-ds${i + 1}`, winner, jugada.seriesLengths[`al-ds${i + 1}`])).join('');
+      const nlDS = (jugada.nlDSWinners || []).map((winner, i) => createPickHTML(`NLDS ${i + 1}`, `nl-ds${i + 1}`, winner, jugada.seriesLengths[`nl-ds${i + 1}`])).join('');
+      const alCS = createPickHTML('ALCS', 'al-cs', jugada.alCSWinner, jugada.seriesLengths['al-cs']);
+      const nlCS = createPickHTML('NLCS', 'nl-cs', jugada.nlCSWinner, jugada.seriesLengths['nl-cs']);
+      const ws = createPickHTML('World Series', 'ws-winner', jugada.worldSeriesWinner, jugada.seriesLengths['ws-winner']);
       const mvp = `<div class="detail-pick"><span class="pick-label">MVP:</span> ${jugada.worldSeriesMVP || 'N/A'}</div>`;
+      const tiebreaker = `<div class="detail-pick"><span class="pick-label">Desempate:</span> ${(jugada.tieBreakerScore || ['?','?']).join(' - ')}</div>`;
 
       return `
         <div class="detail-card">
-          <div class="detail-header">
-            <h2>Detalle de Jugada: ${jugada.name}</h2>
-            <button class="close-detail-btn">&times;</button>
-          </div>
+          <div class="detail-header"><h2>Detalle de Jugada: ${jugada.name}</h2><button class="close-detail-btn">&times;</button></div>
           <div class="detail-grid">
             <div class="detail-round"><h3>Wild Card</h3>${alWC}${nlWC}</div>
             <div class="detail-round"><h3>Division Series</h3>${alDS}${nlDS}</div>
             <div class="detail-round"><h3>Championship</h3>${alCS}${nlCS}</div>
-            <div class="detail-round"><h3>Final</h3>${ws}${mvp}</div>
+            <div class="detail-round"><h3>Final</h3>${ws}${mvp}${tiebreaker}</div>
           </div>
         </div>
       `;
@@ -181,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const sId = `${seriesPrefix}${i+1}`;
                 if (winner && winner === correctW[sId]) {
                     points += pointRules[roundKey].winner;
-                    if (jugada.seriesLengths?.[sId.replace('-','_')] && correctL[sId] && jugada.seriesLengths[sId.replace('-','_')] == correctL[sId]) {
+                    if (jugada.seriesLengths?.[sId] && correctL[sId] && jugada.seriesLengths[sId] == correctL[sId]) {
                         points += pointRules[roundKey].length;
                     }
                 }
@@ -193,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let points = 0;
             if (userWinner && userWinner === correctW[seriesId]) {
                 points += pointRules[roundKey].winner;
-                if (jugada.seriesLengths?.[seriesId.replace('-','_')] && correctL[seriesId] && jugada.seriesLengths[seriesId.replace('-','_')] == correctL[seriesId]) {
+                if (jugada.seriesLengths?.[seriesId] && correctL[seriesId] && jugada.seriesLengths[seriesId] == correctL[seriesId]) {
                     points += pointRules[roundKey].length;
                 }
             }
@@ -206,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
         totalPoints += scoreRound(jugada.nlDSWinners, 'nl-ds', 'ds');
         totalPoints += scoreSingleSeries(jugada.alCSWinner, 'al-cs', 'cs');
         totalPoints += scoreSingleSeries(jugada.nlCSWinner, 'nl-cs', 'cs');
-        totalPoints += scoreSingleSeries(jugada.worldSeriesWinner, 'ws', 'ws');
+        totalPoints += scoreSingleSeries(jugada.worldSeriesWinner, 'ws-winner', 'ws');
         
         return { ...jugada, totalPoints };
       }).sort((a, b) => b.totalPoints - a.totalPoints);
