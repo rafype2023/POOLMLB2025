@@ -8,13 +8,9 @@ document.addEventListener("DOMContentLoaded", function () {
     ws: { winner: 16, length: 4 },
   };
 
-  /**
-   * Creates a single row for a detailed report table, including comparison logic.
-   */
   function createComparisonRow(seriesName, playerPick, playerLength, clavePick, claveLength, points) {
     const winnerMatch = playerPick && clavePick && playerPick === clavePick;
     const lengthMatch = playerLength && claveLength && playerLength === claveLength;
-
     return `
       <tr>
         <td>${seriesName}</td>
@@ -29,43 +25,22 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
   }
 
-  /**
-   * Creates the complete HTML for a single player's intelligent report card.
-   */
   function createPlayerReportCard(playerData) {
     const { name, totalPoints, reportData } = playerData;
-
     const createTableForRound = (title, seriesArray) => {
       return `
         <div class="round-report">
           <h3>${title}</h3>
           <table class="report-table">
-            <thead>
-              <tr>
-                <th>Serie</th>
-                <th>Tu Pick</th>
-                <th>Juegos</th>
-                <th>Pick CLAVE</th>
-                <th>Juegos</th>
-                <th>Acertó Ganador</th>
-                <th>Acertó Juegos</th>
-                <th>Puntos</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${seriesArray.map(s => createComparisonRow(s.name, s.playerPick, s.playerLength, s.clavePick, s.claveLength, s.points)).join('')}
-            </tbody>
+            <thead><tr><th>Serie</th><th>Tu Pick</th><th>Juegos</th><th>Pick CLAVE</th><th>Juegos</th><th>Acertó Ganador</th><th>Acertó Juegos</th><th>Puntos</th></tr></thead>
+            <tbody>${seriesArray.map(s => createComparisonRow(s.name, s.playerPick, s.playerLength, s.clavePick, s.claveLength, s.points)).join('')}</tbody>
           </table>
         </div>
       `;
     };
-
     return `
       <div class="player-report-card">
-        <div class="player-header">
-          <h2>${name || 'Jugador Anónimo'}</h2>
-          <div class="total-score">${totalPoints} Puntos</div>
-        </div>
+        <div class="player-header"><h2>${name || 'Jugador Anónimo'}</h2><div class="total-score">${totalPoints} Puntos</div></div>
         ${createTableForRound("Wild Card Series", reportData.wc)}
         ${createTableForRound("Division Series", reportData.ds)}
         ${createTableForRound("Championship Series", reportData.cs)}
@@ -74,22 +49,17 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
   }
   
-  /**
-   * Processes all predictions against the "CLAVE" entry to calculate scores and generate report data.
-   */
   function processAllJugadas(allJugadas) {
     const claveEntry = allJugadas.find(j => j.name === 'CLAVE' && j.email === 'rafyperez@gmail.com');
     if (!claveEntry) {
-      reportContainer.innerHTML = `<p class="loading-message">No se encontró la jugada "CLAVE". Por favor, cree una entrada con el nombre "CLAVE" y el email "rafyperez@gmail.com" para usar como la hoja de respuestas.</p>`;
+      reportContainer.innerHTML = `<p class="loading-message">No se encontró la jugada "CLAVE".</p>`;
       return [];
     }
-
     const players = allJugadas.filter(j => j._id !== claveEntry._id);
 
     return players.map(player => {
       let totalPoints = 0;
       const reportData = { wc: [], ds: [], cs: [], final: [] };
-
       const seriesMapping = [
         { key: 'alWCWinners', prefix: 'ALWC', round: 'wc', lenPrefix: 'al_wc' },
         { key: 'nlWCWinners', prefix: 'NLWC', round: 'wc', lenPrefix: 'nl_wc' },
@@ -100,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
       seriesMapping.forEach(map => {
         (player[map.key] || []).forEach((playerPick, i) => {
           const clavePick = (claveEntry[map.key] || [])[i];
+          // CORREGIDO: Buscar con guión bajo
           const playerLength = player.seriesLengths?.[`${map.lenPrefix}${i+1}`];
           const claveLength = claveEntry.seriesLengths?.[`${map.lenPrefix}${i+1}`];
           let points = 0;
@@ -123,6 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
       finalSeriesMapping.forEach(map => {
         const playerPick = player[map.key];
         const clavePick = claveEntry[map.key];
+        // CORREGIDO: Buscar con guión bajo
         const playerLength = player.seriesLengths?.[map.lenKey];
         const claveLength = claveEntry.seriesLengths?.[map.lenKey];
         let points = 0;
@@ -137,7 +109,6 @@ document.addEventListener("DOMContentLoaded", function () {
         reportArray.push({ name: map.name, playerPick, playerLength, clavePick, claveLength, points });
       });
       
-      // Add MVP and Tie-Breaker to the final report data
       reportData.final.push({ name: 'MVP', playerPick: player.worldSeriesMVP, clavePick: claveEntry.worldSeriesMVP, points: 0 });
       reportData.final.push({ name: 'Tie-Breaker', playerPick: player.tieBreakerScore.join(' - '), clavePick: claveEntry.tieBreakerScore.join(' - '), points: 0 });
 
@@ -145,28 +116,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }).sort((a, b) => b.totalPoints - a.totalPoints);
   }
 
-  /**
-   * Main function to fetch data and build the entire report page.
-   */
   async function buildReport() {
     try {
       const response = await fetch("/api/jugadas");
       if (!response.ok) throw new Error(`Error fetching data: ${response.statusText}`);
       const allJugadas = await response.json();
-
       reportContainer.innerHTML = "";
       if (allJugadas.length < 2) {
         reportContainer.innerHTML = `<p class="loading-message">Se necesitan al menos 2 jugadas (incluyendo la "CLAVE") para generar el reporte.</p>`;
         return;
       }
-
       const processedPlayers = processAllJugadas(allJugadas);
-
       processedPlayers.forEach(playerData => {
         const cardHTML = createPlayerReportCard(playerData);
         reportContainer.innerHTML += cardHTML;
       });
-
     } catch (error) {
       console.error("Error building report:", error);
       reportContainer.innerHTML = `<p class="loading-message">No se pudo cargar el reporte. ${error.message}</p>`;
