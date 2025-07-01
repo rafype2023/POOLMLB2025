@@ -118,7 +118,6 @@ body {
   cursor: pointer;
 }
 
-/* NEW: Styles for the series length control */
 .series-length-control {
   display: flex;
   align-items: center;
@@ -160,18 +159,17 @@ body {
 .ws-vs { font-size: 1.2rem; color: var(--text-secondary); font-weight: 700; }
 #ws-controls-wrapper { margin-top: 15px; }
 
-/* NEW: Styles for MVP input */
-.mvp-input-wrapper {
+.final-prediction-item {
   margin-top: 15px;
   text-align: left;
 }
-.mvp-input-wrapper label {
+.final-prediction-item label {
   display: block;
   margin-bottom: 5px;
   font-size: 0.9rem;
   color: var(--text-secondary);
 }
-.mvp-input-wrapper input {
+.final-prediction-item input {
   width: 100%;
   box-sizing: border-box;
   padding: 10px;
@@ -181,6 +179,13 @@ body {
   border-radius: 5px;
 }
 
+.tie-breaker-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tie-breaker-controls input { text-align: center; }
+.tie-breaker-controls span { color: var(--text-secondary); font-weight: bold; }
 
 /* User Form */
 #user-info {
@@ -217,3 +222,14 @@ button[type="submit"] {
   transition: background-color 0.2s;
 }
 button[type="submit"]:hover { filter: brightness(1.2); }
+
+/* --- Estilos para Validación de Errores --- */
+.invalid-field {
+  border: 2px solid var(--accent-red) !important;
+  box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+}
+
+.invalid-field::placeholder {
+  color: var(--accent-red);
+  opacity: 0.7;
+}
