@@ -6,6 +6,8 @@
   --text-secondary: #888;
   --accent-blue: #3b82f6;
   --header-dark: #2a2a2a;
+  --correct-green: #22c55e;
+  --incorrect-red: #ef4444;
 }
 
 body {
@@ -64,6 +66,9 @@ body {
   border-bottom: 2px solid var(--accent-blue);
   padding-bottom: 1em;
   margin-bottom: 1.5em;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
 
 .player-header h2 {
@@ -72,10 +77,10 @@ body {
   color: var(--text-primary);
 }
 
-.report-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2em;
+.player-header .total-score {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent-blue);
 }
 
 .round-report h3 {
@@ -92,18 +97,19 @@ body {
 .report-table {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 2em;
 }
 
 .report-table th,
 .report-table td {
-  padding: 10px;
+  padding: 12px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
 }
 
 .report-table th {
   background-color: var(--header-dark);
-  font-size: 0.8rem;
   font-weight: 600;
 }
 
@@ -111,9 +117,18 @@ body {
   border-bottom: none;
 }
 
-.final-picks-report {
-  grid-column: 1 / -1; /* Make this section span both columns */
-  margin-top: 1em;
+.match-yes {
+  color: var(--correct-green);
+  font-weight: bold;
+}
+
+.match-no {
+  color: var(--incorrect-red);
+}
+
+.points-cell {
+  font-weight: bold;
+  text-align: center !important;
 }
 
 .loading-message {
