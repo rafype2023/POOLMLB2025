@@ -84,13 +84,11 @@ document.addEventListener("DOMContentLoaded", function () {
       reportContainer.innerHTML = `<p class="loading-message">No se encontró la jugada "CLAVE". Por favor, cree una entrada con el nombre "CLAVE" y el email "rafyperez@gmail.com" para usar como la hoja de respuestas.</p>`;
       return [];
     }
-
     const players = allJugadas.filter(j => j._id !== claveEntry._id);
 
     return players.map(player => {
       let totalPoints = 0;
       const reportData = { wc: [], ds: [], cs: [], final: [] };
-
       const seriesMapping = [
         { key: 'alWCWinners', prefix: 'ALWC', round: 'wc', lenPrefix: 'al-wc' },
         { key: 'nlWCWinners', prefix: 'NLWC', round: 'wc', lenPrefix: 'nl-wc' },
@@ -162,20 +160,16 @@ document.addEventListener("DOMContentLoaded", function () {
       const response = await fetch("/api/jugadas");
       if (!response.ok) throw new Error(`Error fetching data: ${response.statusText}`);
       const allJugadas = await response.json();
-
       reportContainer.innerHTML = "";
       if (allJugadas.length < 2) {
         reportContainer.innerHTML = `<p class="loading-message">Se necesitan al menos 2 jugadas (incluyendo la "CLAVE") para generar el reporte.</p>`;
         return;
       }
-
       const processedPlayers = processAllJugadas(allJugadas);
-
       processedPlayers.forEach(playerData => {
         const cardHTML = createPlayerReportCard(playerData);
         reportContainer.innerHTML += cardHTML;
       });
-
     } catch (error) {
       console.error("Error building report:", error);
       reportContainer.innerHTML = `<p class="loading-message">No se pudo cargar el reporte. ${error.message}</p>`;
