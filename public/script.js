@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // --- 1. CONFIGURATION ---
+  // --- 1. CONFIGURACIÓN ---
   const alSeeds = ["New York Yankees", "Baltimore Orioles", "Cleveland Guardians", "Seattle Mariners", "Houston Astros", "Minnesota Twins"];
   const nlSeeds = ["Los Angeles Dodgers", "Milwaukee Brewers", "Philadelphia Phillies", "Atlanta Braves", "Chicago Cubs", "San Diego Padres"];
   
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const winners = {};
   const seriesLengths = {}; 
 
-  // --- 2. DYNAMIC ELEMENT CREATION ---
+  // --- 2. CREACIÓN DE ELEMENTOS DINÁMICOS ---
   function getLengthOptions(maxGames) {
     if (maxGames === 3) return `<option value="2">2</option><option value="3">3</option>`;
     if (maxGames === 5) return `<option value="3">3</option><option value="4">4</option><option value="5">5</option>`;
