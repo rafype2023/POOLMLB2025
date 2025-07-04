@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // --- 1. CONFIGURACIÓN ---
+  // --- 1. CONFIGURATION ---
   const alSeeds = ["New York Yankees", "Baltimore Orioles", "Cleveland Guardians", "Seattle Mariners", "Houston Astros", "Minnesota Twins"];
   const nlSeeds = ["Los Angeles Dodgers", "Milwaukee Brewers", "Philadelphia Phillies", "Atlanta Braves", "Chicago Cubs", "San Diego Padres"];
   
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const winners = {};
   const seriesLengths = {}; 
 
-  // --- 2. CREACIÓN DE ELEMENTOS DINÁMICOS ---
+  // --- 2. DYNAMIC ELEMENT CREATION ---
   function getLengthOptions(maxGames) {
     if (maxGames === 3) return `<option value="2">2</option><option value="3">3</option>`;
     if (maxGames === 5) return `<option value="3">3</option><option value="4">4</option><option value="5">5</option>`;
@@ -126,6 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
     updateBracket();
   }
 
+  // --- 3. EVENT HANDLING ---
   document.querySelector('.bracket').addEventListener('change', (e) => {
     const target = e.target;
     if (target.tagName === 'SELECT') {
@@ -136,9 +137,22 @@ document.addEventListener("DOMContentLoaded", function () {
         winners[target.id] = target.value;
         updateBracket();
       }
+
+      // --- DYNAMIC BACKGROUND LOGIC ---
+      if (target.id === 'ws-winner') {
+        const winner = target.value;
+        // Create a simple filename from the team name (e.g., "New York Yankees" -> "newyorkyankees")
+        const imageName = winner.replace(/\s+/g, '').toLowerCase();
+        const newImageUrl = `url("/images/back${imageName}.jpg")`;
+        
+        // Update the CSS variable on the body element
+        document.body.style.setProperty('--background-image-url', newImageUrl);
+        console.log(`Background changed for winner: ${winner}`);
+      }
     }
   });
   
+  // --- 4. VALIDATION & SUBMISSION ---
   function validateForm() {
     const missingFields = [];
     document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
