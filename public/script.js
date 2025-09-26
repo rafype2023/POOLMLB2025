@@ -5,15 +5,15 @@ document.addEventListener("DOMContentLoaded", function () {
   
   const teamLogos = {
     "New York Yankees": "logos/yankees.png",
-    "Baltimore Orioles": "logos/orioles.png",
+    "Toronto BlueJays": "logos/bluejays.png",
     "Cleveland Guardians": "logos/guardians.png",
     "Seattle Mariners": "logos/mariners.png",
-    "Houston Astros": "logos/astros.png",
-    "Minnesota Twins": "logos/twins.png",
+    "Boston Red Sox": "logos/boston.png",
+    "Detroit Tigers": "logos/detroit.png",
     "Los Angeles Dodgers": "logos/dodgers.png",
     "Milwaukee Brewers": "logos/brewers.png",
     "Philadelphia Phillies": "logos/phillies.png",
-    "Cincinnati Reds": "logos/braves.png",
+    "New York Mets": "logos/mets.png",
     "Chicago Cubs": "logos/cubs.png",
     "San Diego Padres": "logos/padres.png",
     "TBD": "logos/default.png"
