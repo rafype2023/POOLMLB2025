@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "Seattle Mariners": "logos/mariners.png",
     "Boston Red Sox": "logos/boston.png",
     "Detroit Tigers": "logos/detroit.png",
-    "Los Angeles Dodgers": "logos/dodgers.png",
+    "LA Dodgers": "logos/dodgers.png",
     "Milwaukee Brewers": "logos/brewers.png",
     "Philadelphia Phillies": "logos/phillies.png",
     "New York Mets": "logos/mets.png",
