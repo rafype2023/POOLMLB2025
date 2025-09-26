@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   // --- 1. CONFIGURATION ---
-  const alSeeds = ["Seattle Mariners", "Toronto BlueJays", "New York Yankees", "Boston Red Sox", "Houston Astros", "Detroit Tigers"];
+  const alSeeds = ["Seattle Mariners", "Toronto BlueJays", "New York Yankees","Houston Astros","Boston Red Sox", "Detroit Tigers"];
   const nlSeeds = ["Philadelphia Phillies", "Milwaukee Brewers", "Chicago Cubs", "LA Dodgers", "New York Mets", "San Diego Padres"];
   
   const teamLogos = {
