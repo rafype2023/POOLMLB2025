@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   // --- 1. CONFIGURATION ---
-  const alSeeds = ["Seattle Mariners", "Toronto BlueJays", "Cleveland Guardians", "Seattle Mariners", "Houston Astros", "Minnesota Twins"];
-  const nlSeeds = ["Philadelphia Phillies", "Milwaukee Brewers", "Philadelphia Phillies", "Cincinnati Reds", "Chicago Cubs", "San Diego Padres"];
+  const alSeeds = ["Seattle Mariners", "Toronto BlueJays", "New York Yankees", "Boston Red Sox", "Houston Astros", "Detroit Tigers"];
+  const nlSeeds = ["Philadelphia Phillies", "Milwaukee Brewers", "Chicago Cubs", "LA Dodgers", "New York Mets", "San Diego Padres"];
   
   const teamLogos = {
     "New York Yankees": "logos/yankees.png",
