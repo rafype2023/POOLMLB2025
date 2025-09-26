@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "Los Angeles Dodgers": "logos/dodgers.png",
     "Milwaukee Brewers": "logos/brewers.png",
     "Philadelphia Phillies": "logos/phillies.png",
-    "Atlanta Braves": "logos/braves.png",
+    "Cincinnati Reds": "logos/braves.png",
     "Chicago Cubs": "logos/cubs.png",
     "San Diego Padres": "logos/padres.png",
     "TBD": "logos/default.png"
