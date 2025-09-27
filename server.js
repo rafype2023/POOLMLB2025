@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer"); // REMOVED
 const cors = require("cors");
 
 const app = express();
@@ -17,24 +17,6 @@ mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ Conectado a MongoDB"))
   .catch((err) => console.error("❌ Error en conexión MongoDB:", err));
-
-// --- NODEMAILER CONFIGURATION ---
-// Using the 'gmail' service preset for simpler configuration
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER, // Your sending email
-    pass: process.env.EMAIL_PASS, // Your App Password
-  }
-});
-
-// Optional: Verify the connection when the server starts (Good for debugging)
-transporter.verify().then(() => {
-  console.log('📧 Nodemailer Transporter Ready. Server can send emails.');
-}).catch((error) => {
-  console.error('❌ Nodemailer Transporter Error: Check SMTP settings and credentials:', error);
-});
-
 
 // --- Schema for Player Predictions ---
 const jugadaSchema = new mongoose.Schema({
@@ -64,81 +46,26 @@ const correctResultsSchema = new mongoose.Schema({
 const CorrectResult = mongoose.model("CorrectResult", correctResultsSchema);
 
 // =============================================================
-// --- Endpoint to POST a new prediction (UPDATED WITH EMAIL) ---
+// --- Endpoint to POST a new prediction (SIMPLIFIED) ---
 // =============================================================
 app.post("/api/submit", async (req, res) => {
   const data = req.body;
   
-  const adminEmail = process.env.TO_EMAIL; // Admin receiving email
-  const userEmail = data.email; 
-
-  // 1. Create the DETAILED HTML content (used for BOTH Admin and User)
-  const fullPredictionHtml = `
-    <h2>⚾ Predicción de la Serie Mundial Recibida</h2>
-    <p>Hola **${data.name || userEmail}**, esta es la copia de la predicción que enviaste y ha sido guardada.</p>
-    <hr>
-    <h3>Datos de Contacto:</h3>
-    <p><strong>Nombre:</strong> ${data.name || 'N/A'}</p>
-    <p><strong>Email:</strong> <a href="mailto:${userEmail}">${userEmail}</a></p>
-    <p><strong>Teléfono:</strong> ${data.phone || 'N/A'}</p>
-    <p><strong>Método de Pago:</strong> ${data.paymentMethod || 'N/A'}</p>
-    <hr>
-    <h3>Tus Pronósticos:</h3>
-    <ul>
-      <li><strong>Ganador de la Serie Mundial:</strong> ${data.worldSeriesWinner || 'N/A'}</li>
-      <li><strong>MVP de la Serie Mundial:</strong> ${data.worldSeriesMVP || 'N/A'}</li>
-      <li><strong>Ganador ALCS:</strong> ${data.alCSWinner || 'N/A'}</li>
-      <li><strong>Ganador NLCS:</strong> ${data.nlCSWinner || 'N/A'}</li>
-      <li><strong>Tie Breaker (Score):</strong> ${data.tieBreakerScore.join(' - ') || 'N/A'}</li>
-      <li><strong>AL Wild Card:</strong> ${data.alWCWinners.join(', ') || 'N/A'}</li>
-      <li><strong>NL Wild Card:</strong> ${data.nlWCWinners.join(', ') || 'N/A'}</li>
-    </ul>
-    <p><strong>Comentarios:</strong> ${data.comments || 'No hay comentarios.'}</p>
-    <p><em>Enviado el: ${new Date().toLocaleString()}</em></p>
-  `;
-
   try {
-    // 2. Save prediction to MongoDB
+    // Save prediction to MongoDB
     const newJugada = new Jugada(data);
     await newJugada.save();
     console.log("📥 Jugada guardada en la base de datos:", newJugada);
 
-    // --- A. Send Confirmation Email TO THE USER (Full Data) ---
-    if (userEmail) {
-      const confirmationMailOptions = {
-        from: process.env.EMAIL_USER,
-        to: userEmail, 
-        subject: `✅ Confirmación de tu Predicción para la Serie Mundial`,
-        html: fullPredictionHtml, // Sends the detailed HTML content
-      };
-      await transporter.sendMail(confirmationMailOptions);
-      console.log("✅ Correo de confirmación enviado al usuario:", userEmail);
-    }
+    // Only sending a success response, no email logic here.
 
-    // --- B. Send Notification Email TO THE ADMIN (Full Data) ---
-    if (adminEmail && process.env.EMAIL_USER) {
-      const adminMailOptions = {
-        from: process.env.EMAIL_USER,
-        to: adminEmail, 
-        subject: `⚾ Nueva Predicción de ${data.name || 'Usuario'}`,
-        html: fullPredictionHtml, // Sends the detailed HTML content
-      };
-      await transporter.sendMail(adminMailOptions);
-      console.log("✅ Correo de notificación a Admin enviado.");
-    } else {
-        // This warning appears if TO_EMAIL or EMAIL_USER is missing in Render
-        console.warn('⚠️ No se pudo enviar el correo de notificación: Faltan variables de entorno (EMAIL_USER o TO_EMAIL).');
-    }
-
-    res.status(200).json({ message: "Predicción recibida y emails gestionados." });
+    res.status(200).json({ message: "Predicción recibida correctamente y guardada." });
   } catch (error) {
-    console.error("❌ Error en envío de predicción o correo:", error);
-    res.status(500).json({ error: "Error interno del servidor. La predicción podría haberse guardado, pero el email falló." });
+    console.error("❌ Error en envío de predicción:", error);
+    res.status(500).json({ error: "Error interno del servidor al guardar la predicción." });
   }
 });
 // =============================================================
-// =============================================================
-
 
 // --- Endpoint to GET all player predictions ---
 app.get("/api/jugadas", async (req, res) => {
