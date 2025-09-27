@@ -20,14 +20,13 @@ mongoose
 // ----------------------------------------
 // --- NODEMAILER CONFIGURATION ---
 // ----------------------------------------
+// Nodemailer Setup
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST, // e.g., 'smtp.gmail.com'
-  port: process.env.SMTP_PORT, // e.g., 587 or 465
-  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // Your sending email
-    pass: process.env.EMAIL_PASS, // Your App Password or service password
-  },
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
 // Optional: Verify the connection when the server starts
