@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const nodemailer = require("nodemailer");
+const nodemailer = require("nodemailer"); // Required
 const cors = require("cors");
 
 const app = express();
@@ -12,23 +12,24 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-// --- MongoDB Connection ---
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ Conectado a MongoDB"))
   .catch((err) => console.error("❌ Error en conexión MongoDB:", err));
 
+// ----------------------------------------
 // --- NODEMAILER CONFIGURATION ---
-// Using the 'gmail' service preset for simpler configuration
+// ----------------------------------------
+// Nodemailer Setup
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // Your sending email
-    pass: process.env.EMAIL_PASS, // Your App Password
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
-// Optional: Verify the connection when the server starts (Good for debugging)
+// Optional: Verify the connection when the server starts
 transporter.verify().then(() => {
   console.log('📧 Nodemailer Transporter Ready. Server can send emails.');
 }).catch((error) => {
@@ -63,27 +64,22 @@ const correctResultsSchema = new mongoose.Schema({
 });
 const CorrectResult = mongoose.model("CorrectResult", correctResultsSchema);
 
-// =============================================================
+// -------------------------------------------------------------
 // --- Endpoint to POST a new prediction (UPDATED WITH EMAIL) ---
-// =============================================================
+// -------------------------------------------------------------
 app.post("/api/submit", async (req, res) => {
   const data = req.body;
-  
-  const adminEmail = process.env.TO_EMAIL; // Admin receiving email
-  const userEmail = data.email; 
+  const adminEmail = process.env.TO_EMAIL; // Admin receiving email from environment variables
 
-  // 1. Create the DETAILED HTML content (used for BOTH Admin and User)
-  const fullPredictionHtml = `
-    <h2>⚾ Predicción de la Serie Mundial Recibida</h2>
-    <p>Hola **${data.name || userEmail}**, esta es la copia de la predicción que enviaste y ha sido guardada.</p>
+  // 1. Create the HTML content for the Admin/Confirmation Email
+  const emailHtml = `
+    <h2>⚾ Nueva Predicción Recibida</h2>
+    <p><strong>Nombre:</strong> ${data.name}</p>
+    <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+    <p><strong>Teléfono:</strong> ${data.phone}</p>
+    <p><strong>Método de Pago:</strong> ${data.paymentMethod}</p>
     <hr>
-    <h3>Datos de Contacto:</h3>
-    <p><strong>Nombre:</strong> ${data.name || 'N/A'}</p>
-    <p><strong>Email:</strong> <a href="mailto:${userEmail}">${userEmail}</a></p>
-    <p><strong>Teléfono:</strong> ${data.phone || 'N/A'}</p>
-    <p><strong>Método de Pago:</strong> ${data.paymentMethod || 'N/A'}</p>
-    <hr>
-    <h3>Tus Pronósticos:</h3>
+    <h3>Pronósticos del Jugador:</h3>
     <ul>
       <li><strong>Ganador de la Serie Mundial:</strong> ${data.worldSeriesWinner || 'N/A'}</li>
       <li><strong>MVP de la Serie Mundial:</strong> ${data.worldSeriesMVP || 'N/A'}</li>
@@ -103,41 +99,39 @@ app.post("/api/submit", async (req, res) => {
     await newJugada.save();
     console.log("📥 Jugada guardada en la base de datos:", newJugada);
 
-    // --- A. Send Confirmation Email TO THE USER (Full Data) ---
-    if (userEmail) {
-      const confirmationMailOptions = {
-        from: process.env.EMAIL_USER,
-        to: userEmail, 
-        subject: `✅ Confirmación de tu Predicción para la Serie Mundial`,
-        html: fullPredictionHtml, // Sends the detailed HTML content
-      };
-      await transporter.sendMail(confirmationMailOptions);
-      console.log("✅ Correo de confirmación enviado al usuario:", userEmail);
-    }
-
-    // --- B. Send Notification Email TO THE ADMIN (Full Data) ---
+    // 3. Send Notification Email to Admin
     if (adminEmail && process.env.EMAIL_USER) {
       const adminMailOptions = {
         from: process.env.EMAIL_USER,
-        to: adminEmail, 
-        subject: `⚾ Nueva Predicción de ${data.name || 'Usuario'}`,
-        html: fullPredictionHtml, // Sends the detailed HTML content
+        to: adminEmail, // The email that receives the notification
+        subject: `⚾ Nueva Predicción de ${data.name}`,
+        html: emailHtml,
       };
-      await transporter.sendMail(adminMailOptions);
-      console.log("✅ Correo de notificación a Admin enviado.");
+      const info = await transporter.sendMail(adminMailOptions);
+      console.log("✅ Correo de notificación a Admin enviado:", info.messageId);
+
+      // 4. Send Confirmation Email to User
+      const confirmationMailOptions = {
+        from: process.env.EMAIL_USER,
+        to: data.email, // Send confirmation to the user's email
+        subject: `✅ Confirmación de Predicción Recibida`,
+        html: `Hola **${data.name}**,<br><br>Tu predicción para el World Series Challenge ha sido recibida y guardada correctamente. ¡Mucha suerte!<br><br>Saludos cordiales.`,
+      };
+      await transporter.sendMail(confirmationMailOptions);
     } else {
-        // This warning appears if TO_EMAIL or EMAIL_USER is missing in Render
-        console.warn('⚠️ No se pudo enviar el correo de notificación: Faltan variables de entorno (EMAIL_USER o TO_EMAIL).');
+        console.warn('⚠️ No se pudo enviar el correo: Faltan variables de entorno (EMAIL_USER o TO_EMAIL).');
     }
 
-    res.status(200).json({ message: "Predicción recibida y emails gestionados." });
+    res.status(200).json({ message: "Predicción recibida y confirmación enviada." });
   } catch (error) {
     console.error("❌ Error en envío de predicción o correo:", error);
+    // Note: It's often better to send a success response if the DB save worked, 
+    // even if the email failed (unless the email is absolutely critical).
     res.status(500).json({ error: "Error interno del servidor. La predicción podría haberse guardado, pero el email falló." });
   }
 });
-// =============================================================
-// =============================================================
+// -------------------------------------------------------------
+// -------------------------------------------------------------
 
 
 // --- Endpoint to GET all player predictions ---
@@ -186,3 +180,6 @@ app.get("/api/get-results", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
+
+
+
